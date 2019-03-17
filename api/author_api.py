@@ -4,7 +4,7 @@ from flask import Blueprint
 from messages.author_messages import NewAuthorRequest, UpdateAuthorRequest
 from services.author_service import AuthorService
 
-author_api = Blueprint('user_api', __name__)
+author_api = Blueprint('author_api', __name__)
 
 
 # TODO 7 - Lot of service = AuthorService.get_instance(). Should I create a class and use it only once? (^.-)

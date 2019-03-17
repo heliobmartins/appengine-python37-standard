@@ -1,0 +1,21 @@
+runtime: python37
+
+instance_class: F1
+
+automatic_scaling:
+  max_instances: 1
+
+#[START_EXCLUDE]
+skip_files:
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
+- ^(.*/)?setuptools/script \(dev\).tmpl$
+#[END_EXCLUDE]
+
+
+env_variables:
+  GOOGLE_APPLICATION_CREDENTIALS: settings/production-firestore-service-account.json
+  PROJECT_ID: poc-symptom-tracker

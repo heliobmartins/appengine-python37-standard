@@ -275,3 +275,6 @@ fabric.properties
 [Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json
+
+### Avoiding Commit Keys ###
+/settings/*.json

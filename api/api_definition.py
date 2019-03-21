@@ -1,10 +1,17 @@
+from settings.decorators.api_decorator import ApiRegistrar
+
+
+# noinspection PyUnresolvedReferences
+def import_apis():
+    import api.author_api
+    import api.content_api
+
+
 def initialise_apis(app):
-    from api.author_api import author_api
-    from api.content_api import content_api
-    apis = [author_api, content_api]
-    register_apis(app, apis)
+    import_apis()
+    register_apis(app)
 
 
-def register_apis(app, apis):
-    for api in apis:
-        app.register_blueprint(api, url_prefix='/api/v1/')
+def register_apis(app):
+    for blueprint in list(ApiRegistrar.get_instance().get_registered_apis().values()):
+        app.register_blueprint(blueprint)

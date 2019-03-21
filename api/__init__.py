@@ -5,7 +5,6 @@ from firebase_admin import firestore, credentials
 from flask import Flask
 
 from api.api_definition import register_apis, initialise_apis
-from api.author_api import author_api
 from settings import config
 
 

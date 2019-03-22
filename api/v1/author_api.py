@@ -1,12 +1,13 @@
 import flask
 
+from api.api_definition import api_v1
 from messages.author_messages import NewAuthorRequest, UpdateAuthorRequest
 from services.author_service import AuthorService
-from settings.decorators.api_decorator import api, route
+from settings.decorators.api_decorator import route
 
 
 # noinspection PyMethodParameters
-@api(name='author_api', url_prefix='authors', version="v1")
+@api_v1(name='author_api', url_prefix='authors')
 class AuthorApi:
 
     # TODO 7 - Lot of service = AuthorService.get_instance(). Should I create a class and use it only once? (^.-)

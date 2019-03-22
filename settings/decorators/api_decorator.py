@@ -1,55 +1,52 @@
 from flask import Blueprint
 
 
+class ApiConstants:
+    ROUTE_KWARGS = 'route_kwargs'
+    RULE_FLASK_PARAM = 'rule'
+    METHODS_FLASK_PARAM = 'methods'
+    ENDPOINT_FLASK_PARAM = 'endpoint'
+
+
 class ApiRegistrar:
-    __instance = None
     _blueprint_instances = {}
-    _blueprint = None
+    _version = None
 
-    def __init__(self):
-        if ApiRegistrar.__instance is not None:
-            raise Exception("This class is a Singleton")
-        else:
-            ApiRegistrar.__instance = self
+    def __init__(self, version):
+        self._version = version
 
-    def __call__(self, cls):
-        for name in dir(cls):
-            attr = getattr(cls, name)
-            if callable(attr) and hasattr(attr, 'route_kwargs'):
-                path = str(attr.route_kwargs.pop('path', "/"))
-                path = path if len(path) > 0 and path[0] is '/' else '/' + path
-                endpoint = attr.route_kwargs.pop("endpoint", name)
-                self._blueprint.add_url_rule(path, endpoint, attr, **attr.route_kwargs)
+    def __call__(self, name, url_prefix, **kwargs):
+        def create_routes(cls):
+            built_url_prefix = self._build_url_prefix() + url_prefix
+            blueprint = Blueprint(import_name=__name__, name=name, url_prefix=built_url_prefix, **kwargs)
+            self._blueprint_instances[name] = blueprint
+            for attr_name in dir(cls):
+                attr = getattr(cls, attr_name)
+                if callable(attr) and hasattr(attr, ApiConstants.ROUTE_KWARGS):
+                    route_attributes = getattr(attr, ApiConstants.ROUTE_KWARGS)
+                    rule = self.get_rule_after_validation(route_attributes.pop(ApiConstants.RULE_FLASK_PARAM))
+                    endpoint_name = route_attributes.pop(ApiConstants.ENDPOINT_FLASK_PARAM, attr_name)
+                    blueprint.add_url_rule(rule, endpoint_name, attr, **route_attributes)
+            return cls
 
-        return cls
-
-    @classmethod
-    def get_instance(cls):
-        if cls.__instance is None:
-            cls()
-        return cls.__instance
+        return create_routes
 
     def get_registered_apis(self):
         return self._blueprint_instances
 
-    def register_blueprint(self, version, **kwargs):
-        kwargs['url_prefix'] = self._build_url_prefix(version) + kwargs['url_prefix']
-        self._blueprint = Blueprint(import_name=__name__, **kwargs)
-        self._blueprint_instances[self._blueprint.name] = self._blueprint
-        return self
+    def _build_url_prefix(self):
+        return "/api/%s/" % self._version
 
     @staticmethod
-    def _build_url_prefix(version):
-        return f"/api/{version}/"
+    def get_rule_after_validation(rule):
+        return "/" + rule if len(rule) > 0 and rule[0] != "/" else rule
 
 
-def route(**kwargs):
-    def __wrapped(func):
-        func.route_kwargs = kwargs
+def endpoint(methods, rule="", **kwargs):
+    def route(func):
+        kwargs[ApiConstants.RULE_FLASK_PARAM] = rule
+        kwargs[ApiConstants.METHODS_FLASK_PARAM] = methods
+        setattr(func, ApiConstants.ROUTE_KWARGS, kwargs)
         return func
 
-    return __wrapped
-
-
-def api(version, **kwargs):
-    return ApiRegistrar.get_instance().register_blueprint(version, **kwargs)
+    return route
